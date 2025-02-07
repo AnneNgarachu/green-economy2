@@ -1,0 +1,16 @@
+{
+  "tables": [
+    {
+      "name": "Orders",
+      "fields": ["OrderID", "CustomerID", "OrderDate", "TotalAmount"]
+    },
+    {
+      "name": "Products",
+      "fields": ["ProductID", "ProductName", "Category", "Price"]
+    },
+    {
+      "name": "Customers",
+      "fields": ["CustomerID", "Name", "Email", "Phone"]
+    }
+  ]
+}
