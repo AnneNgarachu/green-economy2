@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from '../../../lib/hooks/useAuth';  // if using relative paths
+import { useAuth } from '@/lib/hooks/useAuth';  // if using path aliases
 
 export default function SignInWithGoogle() {
   const { signInWithGoogle } = useAuth();
