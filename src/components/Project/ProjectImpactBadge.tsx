@@ -4,8 +4,15 @@ interface ProjectImpactBadgeProps {
   impact: string;
 }
 
+type ImpactColorType = {
+  [key: string]: string;  // This tells TypeScript the object can be indexed with strings
+  high: string;
+  medium: string;
+  low: string;
+}
+
 export function ProjectImpactBadge({ impact }: ProjectImpactBadgeProps) {
-  const impactColors = {
+  const impactColors: ImpactColorType = {
     high: "bg-red-100 text-red-700",
     medium: "bg-yellow-100 text-yellow-700",
     low: "bg-green-100 text-green-700",
