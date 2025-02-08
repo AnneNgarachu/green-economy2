@@ -1,8 +1,10 @@
+// src/components/layout/RootLayout.tsx
+"use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/firebase";
+import { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase";
 import {
   BarChart,
   FileInput,
@@ -34,21 +36,30 @@ const NavItem = ({ href, children, icon: Icon }: any) => {
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
     });
 
-    return () => unsubscribe();
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       router.push("/login");
     } catch (error) {
       console.error("Error logging out:", error);
@@ -71,15 +82,13 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           {user ? (
             <>
               <img
-                src={
-                  user.photoURL || "https://via.placeholder.com/40?text=Avatar"
-                }
+                src={user.user_metadata?.avatar_url || "https://via.placeholder.com/40?text=Avatar"}
                 alt="User Avatar"
                 className="w-10 h-10 rounded-full"
               />
               <div>
                 <p className="text-sm font-medium">
-                  {user.displayName || user.email}
+                  {user.user_metadata?.full_name || user.email}
                 </p>
                 <p className="text-xs text-gray-500">Logged in</p>
               </div>
