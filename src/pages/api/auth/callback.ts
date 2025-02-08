@@ -1,6 +1,6 @@
 // src/pages/api/auth/callback.ts
 import { NextApiRequest, NextApiResponse } from 'next'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from "@/utils/supabase";
 
 export default async function handler(
   req: NextApiRequest,
@@ -8,16 +8,14 @@ export default async function handler(
 ) {
   const { code } = req.query
 
-  if (code) {
-    try {
-      const supabase = createClient()
-      await supabase.auth.exchangeCodeForSession(String(code))
-      return res.redirect('/dashboard')
-    } catch (error) {
-      console.error('Error:', error)
-      return res.redirect('/login?error=Something went wrong')
-    }
-  }
+  if (!code) return res.redirect('/login?error=No code provided')
 
-  return res.redirect('/login?error=No code provided')
+  try {
+    const { error } = await supabase.auth.exchangeCodeForSession(String(code))
+    if (error) throw error
+    return res.redirect('/dashboard')
+  } catch (error) {
+    console.error('Auth callback error:', error)
+    return res.redirect('/login?error=Authentication failed')
+  }
 }

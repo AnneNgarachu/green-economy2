@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { User } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase";
+import { supabase } from "@/utils/supabase";
 import {
   BarChart,
   FileInput,
@@ -16,8 +16,14 @@ import {
   Menu,
 } from "lucide-react";
 
-const NavItem = ({ href, children, icon: Icon }: any) => {
-  const pathname = useRouter().pathname;
+interface NavItemProps {
+  href: string;
+  children: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const NavItem = ({ href, children, icon: Icon }: NavItemProps) => {
+  const { pathname } = useRouter();
   const isActive = pathname === href;
 
   return (
@@ -39,22 +45,19 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
-    // Check active session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event: string, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
@@ -98,24 +101,12 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           )}
         </div>
         <div className="flex-1 px-2 py-4 space-y-2">
-          <NavItem href="/dashboard" icon={Home}>
-            Home
-          </NavItem>
-          <NavItem href="/data-input" icon={FileInput}>
-            Data Input
-          </NavItem>
-          <NavItem href="/goals" icon={Goal}>
-            Goals
-          </NavItem>
-          <NavItem href="/reports" icon={BarChart}>
-            Reports
-          </NavItem>
-          <NavItem href="/settings" icon={Settings}>
-            Settings
-          </NavItem>
-          <NavItem href="/help" icon={HelpCircle}>
-            Help
-          </NavItem>
+          <NavItem href="/dashboard" icon={Home}>Home</NavItem>
+          <NavItem href="/data-input" icon={FileInput}>Data Input</NavItem>
+          <NavItem href="/goals" icon={Goal}>Goals</NavItem>
+          <NavItem href="/reports" icon={BarChart}>Reports</NavItem>
+          <NavItem href="/settings" icon={Settings}>Settings</NavItem>
+          <NavItem href="/help" icon={HelpCircle}>Help</NavItem>
         </div>
         <div className="px-2 py-4">
           <button
