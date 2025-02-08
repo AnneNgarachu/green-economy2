@@ -1,24 +1,22 @@
+'use client'
+
 import { useState } from "react";
 import { useRouter } from "next/router";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-} from "firebase/auth";
-import { auth } from "../lib/firebase/firebase"; // Adjust the path as needed
+import { createClient } from '@/lib/supabase'
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { toast, ToastContainer } from "react-toastify"; // Import Toastify
-import "react-toastify/dist/ReactToastify.css"; // Toastify styles
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true); // Toggle state: true = Login, false = Register
-  const [isLoading, setIsLoading] = useState(false); // Loading state for buttons
+  const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // For registration
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const supabase = createClient();
 
   // Function to handle login
   const handleLogin = async (e: React.FormEvent) => {
@@ -27,25 +25,23 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      );
-      const user = userCredential.user;
+      });
 
-      if (!user.emailVerified) {
-        toast.warning("Please verify your email address before logging in.");
-        auth.signOut(); // Log the user out
-      } else {
+      if (error) throw error;
+
+      if (data.user) {
         toast.success("Login successful!");
-        router.push("/dashboard"); // Redirect to dashboard
+        router.push("/dashboard");
       }
 
       setIsLoading(false);
     } catch (err: any) {
       setIsLoading(false);
       setError(err.message || "Failed to login");
+      toast.error(err.message);
     }
   };
 
@@ -60,26 +56,24 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-      );
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
 
-      // Send email verification
-      const user = userCredential.user;
-      await sendEmailVerification(user);
+      if (error) throw error;
 
       toast.success(
-        "Registration successful! A verification email has been sent to your inbox.",
+        "Registration successful! Please check your email for verification.",
       );
 
-      // Clear the form fields
       setEmail("");
       setPassword("");
       setConfirmPassword("");
 
-      // Redirect to the login page after a delay
       setTimeout(() => {
         router.push("/login");
       }, 3000);
@@ -88,6 +82,24 @@ export default function LoginPage() {
     } catch (err: any) {
       setIsLoading(false);
       setError(err.message || "Failed to register");
+      toast.error(err.message);
+    }
+  };
+
+  // Function to handle Google login
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || "Failed to login with Google");
+      toast.error(err.message);
     }
   };
 
@@ -104,7 +116,25 @@ export default function LoginPage() {
           Login or create an account to start your sustainability journey
         </p>
 
-        {/* Tab Navigation */}
+        {/* Google Sign In Button */}
+        <Button 
+          onClick={handleGoogleLogin} 
+          className="w-full mb-4"
+          variant="outline"
+        >
+          Sign in with Google
+        </Button>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+          </div>
+        </div>
+
+        {/* Rest of your existing UI code remains the same */}
         <div className="flex justify-between mb-4">
           <button
             onClick={() => setIsLogin(true)}
@@ -152,7 +182,7 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
             <p className="text-center text-sm mt-4">
-              <a
+              
                 href="#"
                 onClick={() => router.push("/forgot-password")}
                 className="text-blue-500 hover:underline"
@@ -215,7 +245,6 @@ export default function LoginPage() {
           .
         </p>
       </div>
-      {/* Toastify Container */}
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
