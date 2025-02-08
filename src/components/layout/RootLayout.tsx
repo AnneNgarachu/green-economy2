@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase";
 import {
   BarChart,
   FileInput,
