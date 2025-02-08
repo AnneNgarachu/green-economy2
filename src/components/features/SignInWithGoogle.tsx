@@ -1,7 +1,7 @@
 // src/components/features/SignInWithGoogle.tsx
 "use client";
 
-import { useAuth } from '@/lib/hooks/useAuth';
+import { useAuth } from '@/lib/contexts/AuthContext'; // Update this path
 
 export default function SignInWithGoogle() {
   const { signInWithGoogle } = useAuth();
