@@ -1,26 +1,27 @@
+// src/components/features/onboarding/OnboardingContainer.tsx
 import React, { useState } from "react";
-import FacilityDetails from "@/components/features/onboarding/FacilityDetails";
-import BasicSetup from "@/components/features/onboarding/BasicSetup";
-import GoalSetting from "@/components/features/onboarding/GoalSetting";
-import ReviewSummary from "@/components/features/onboarding/ReviewSummary";
+import FacilityDetails from "./FacilityDetails";
+import BasicSetup from "./BasicSetup";
+import GoalSetting from "./GoalSetting";
+import ReviewSummary from "./ReviewSummary";
 import { useRouter } from "next/router";
-import OnboardingProgress from "@/components/features/onboarding/OnboardingProgress";
+import OnboardingProgress from "./OnboardingProgress";
+import { FormData } from "@/types/forms";
 
 const OnboardingContainer: React.FC = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
   const router = useRouter();
 
-  // Persistent formData state for all steps
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     industry: "",
-    size: "",
+    size: "",  // Initialize with empty string
     facilityCount: 1,
     facilityNames: [],
     goals: [],
   });
 
-  const handleNext = (data: Partial<typeof formData>) => {
+  const handleNext = (data: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
     setStep((prev) => prev + 1);
   };
@@ -37,10 +38,8 @@ const OnboardingContainer: React.FC = () => {
   };
 
   const handleFinish = () => {
-    // Prevent duplicate alerts
-    if (typeof window !== "undefined" && !window.onboardingAlertShown) {
-      window.onboardingAlertShown = true; // Custom global flag
-      alert("🎉 Onboarding Complete! Welcome to your dashboard!");
+    if (typeof window !== "undefined" && !localStorage.getItem('onboardingAlertShown')) {
+      localStorage.setItem('onboardingAlertShown', 'true');
       router.push("/dashboard");
     }
   };
@@ -60,7 +59,7 @@ const OnboardingContainer: React.FC = () => {
                 industry: formData.industry,
                 size: formData.size,
               }}
-              onNext={(data) => handleNext(data)}
+              onNext={handleNext}
             />
           )}
           {step === 2 && (
@@ -69,14 +68,14 @@ const OnboardingContainer: React.FC = () => {
                 facilityCount: formData.facilityCount,
                 facilityNames: formData.facilityNames,
               }}
-              onNext={(data) => handleNext(data)}
+              onNext={handleNext}
               onBack={handleBack}
             />
           )}
           {step === 3 && (
             <GoalSetting
               initialData={{ goals: formData.goals }}
-              onNext={(data) => handleNext(data)}
+              onNext={handleNext}
               onBack={handleBack}
             />
           )}

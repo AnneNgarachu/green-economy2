@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { industries } from "@/data/industries"; // Shared industries array
 
 interface Props {
   formData: {
     industry: string;
-    size: number;
+    size: string;  // Changed from number to string to match BasicSetup
     facilityCount: number;
     facilityNames?: string[];
     goals?: string[];
@@ -23,6 +22,29 @@ const ReviewSummary: React.FC<Props> = ({
 }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+
+  const industries = [
+    "Agriculture",
+    "Aviation",
+    "Education",
+    "Energy",
+    "Finance",
+    "Healthcare",
+    "Hospitality",
+    "Manufacturing",
+    "Retail",
+    "Technology",
+  ];
+
+  const sizeRanges = [
+    "1-50 Employees",
+    "51-200 Employees",
+    "201-500 Employees",
+    "501-1000 Employees",
+    "1001-5000 Employees",
+    "5001-20,000 Employees",
+    "20,001+ Employees",
+  ];
 
   const handleEditStart = (field: string, currentValue: any) => {
     setEditingField(field);
@@ -43,6 +65,7 @@ const ReviewSummary: React.FC<Props> = ({
     currentValue: any,
     type: "text" | "number" = "text",
     isDropdown: boolean = false,
+    options: string[] = []
   ) => (
     <div className="flex items-center justify-between w-full">
       <span className="font-medium">{label}:</span>
@@ -52,12 +75,12 @@ const ReviewSummary: React.FC<Props> = ({
             <select
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+              className="w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
             >
-              <option value="">Select Industry</option>
-              {industries.map((industry) => (
-                <option key={industry} value={industry}>
-                  {industry}
+              <option value="">Select {label}</option>
+              {options.map((option) => (
+                <option key={option} value={option}>
+                  {option}
                 </option>
               ))}
             </select>
@@ -66,7 +89,7 @@ const ReviewSummary: React.FC<Props> = ({
               type={type}
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+              className="w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
             />
           )}
           <Button variant="default" size="sm" onClick={handleEditSave}>
@@ -102,12 +125,15 @@ const ReviewSummary: React.FC<Props> = ({
           formData.industry,
           "text",
           true,
+          industries
         )}
         {renderEditableField(
           "size",
           "Organization Size",
           formData.size,
-          "number",
+          "text",
+          true,
+          sizeRanges
         )}
 
         <div className="flex flex-col gap-2">
@@ -124,13 +150,9 @@ const ReviewSummary: React.FC<Props> = ({
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                      className="rounded-md border-gray-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
                     />
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleEditSave}
-                    >
+                    <Button variant="default" size="sm" onClick={handleEditSave}>
                       Save
                     </Button>
                   </div>
@@ -138,9 +160,7 @@ const ReviewSummary: React.FC<Props> = ({
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() =>
-                      handleEditStart(`facility-${index}`, name || "")
-                    }
+                    onClick={() => handleEditStart(`facility-${index}`, name || "")}
                   >
                     Edit
                   </Button>
@@ -166,13 +186,9 @@ const ReviewSummary: React.FC<Props> = ({
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                      className="rounded-md border-gray-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
                     />
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleEditSave}
-                    >
+                    <Button variant="default" size="sm" onClick={handleEditSave}>
                       Save
                     </Button>
                   </div>
@@ -197,14 +213,7 @@ const ReviewSummary: React.FC<Props> = ({
         <Button variant="outline" size="lg" onClick={onBack}>
           Back
         </Button>
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => {
-            alert("🎉 Onboarding Complete! Welcome to your dashboard!");
-            onFinish();
-          }}
-        >
+        <Button variant="default" size="lg" onClick={onFinish}>
           Finish
         </Button>
       </div>
